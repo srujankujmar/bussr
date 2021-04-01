@@ -1,0 +1,55 @@
+# Setting host
+- hosts: localhost
+  gather_facts: false
+  vars:
+    ansible_python_interpreter: '{{ ansible_playbook_python }}'
+    image_name: bussr
+    image_tag: apptest
+  tasks:
+    - name: Install packages that allow apt to be used over HTTPS
+      apt:
+         name: "{{ packages }}"
+         state: present
+      vars:
+        packages:
+        - minikube-linux-amd64 
+    - name: Create a Deployment for Hello Go.
+      k8s:
+        state: present
+        definition:
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: bussr
+            namespace: app-test
+          spec:
+            selector:
+              matchLabels:
+                app: bussr
+            template:
+              metadata:
+                labels:
+                  app: bussr
+              spec:
+                containers:
+                - name: bussr-app
+                  image: "{{ image_name }}:{{ image_tag }}"
+                  imagePullPolicy: IfNotPresent
+                  ports:
+                  - containerPort: 8180# Create Kubernetes Service (DNS required)
+    - name: Create a Service for Hello Go.
+      k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Service
+          metadata:
+            name: bussr
+            namespace: app-test
+          spec:
+            type: LoadBalancer
+            ports:
+            - port: 8180
+              targetPort: 8180
+            selector:
+              app: bussr

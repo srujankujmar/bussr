@@ -1,0 +1,18 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bussr-deployment
+  labels:
+    app: bussr
+spec:
+  selector:
+    matchLabels:
+      app: bussr
+  template:
+    metadata:
+      labels:
+        app: bussr
+    spec:
+      containers:
+      - name: bussr-app
+        image: srujan5140/bussr:apptest
